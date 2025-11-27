@@ -1,0 +1,28 @@
+# Vagrantfile - save as "Vagrantfile" in your project root
+Vagrant.configure("2") do |config|
+    # Base box
+    config.vm.box = "ubuntu/focal64"
+    config.vm.hostname = "devbox"
+
+    # Networking
+    config.vm.network "private_network", ip: "192.168.56.10"
+    config.vm.network "forwarded_port", guest: 80, host: 8080
+
+    # Shared folder (project root -> /vagrant)
+    config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+    # Provider-specific settings for VirtualBox
+    config.vm.provider "virtualbox" do |vb|
+        vb.name = "devbox"
+        vb.memory = "2048"
+        vb.cpus = 2
+    end
+
+    # Simple shell provisioning: update and install nginx
+    config.vm.provision "shell", inline: <<-SHELL
+        apt-get update -y
+        DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
+        systemctl enable nginx
+        systemctl start nginx
+    SHELL
+end
